@@ -1,4 +1,4 @@
-# lambda-backend API
+# api-template
 
 The following dependencies are required to build and run this project, depending
 on your OS, they may already be installed:
