@@ -1,0 +1,27 @@
+version: "3.3"
+
+services:
+  redis_database:
+    image: redis:latest
+    container_name: redis_database
+    volumes:
+      - ./redis_data:/data
+    restart: always
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+  lambda-backend-db:
+    image: mysql
+    container_name: lambda-backend-db
+    volumes:
+      - lambda-backend-db:/var/opt/mssql
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=aQz12asw
+      - MYSQL_PASSWORD=HEyOkK87
+      - MYSQL_USER=sa
+      - MYSQL_DATABASE=order_service
+volumes:
+  lambda-backend-db:

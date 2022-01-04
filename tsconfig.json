@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "build",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "strict": true,
+    "target": "es6",
+    "lib": [
+      "es2017",
+      "dom",
+      "ES2020.String"
+    ],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "baseUrl": "."
+  },
+  "exclude": [
+    "build/**/*.ts",
+    "dist/**/*.ts"
+  ]
+}
