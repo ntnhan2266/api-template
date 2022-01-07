@@ -53,3 +53,6 @@ debug.log
 # docker
 
 /docker/redis_data
+/docker/mongo-data
+/docker/dockervolume
+

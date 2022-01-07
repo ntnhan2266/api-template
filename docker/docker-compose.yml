@@ -1,9 +1,8 @@
 version: "3.3"
-
 services:
   redis_database:
-    image: redis:latest
-    container_name: redis_database
+    image: redis:6.2
+    container_name: redis
     volumes:
       - ./redis_data:/data
     restart: always
@@ -11,17 +10,18 @@ services:
       - "6379"
     ports:
       - "6379:6379"
-  lambda-backend-db:
-    image: mysql
-    container_name: lambda-backend-db
-    volumes:
-      - lambda-backend-db:/var/opt/mssql
+
+  mongodb:
+    image: mongo:4.4
+    container_name: mongodb
     ports:
-      - 3306:3306
+      - 27017:27017
+    volumes:
+      - ./mongo-data:/data/db
+      - ./seed/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
-      - MYSQL_ROOT_PASSWORD=aQz12asw
-      - MYSQL_PASSWORD=HEyOkK87
-      - MYSQL_USER=sa
-      - MYSQL_DATABASE=order_service
+      MONGO_INITDB_ROOT_USERNAME: autonomous
+      MONGO_INITDB_ROOT_PASSWORD: Ftk7N68pUib6LV
 volumes:
-  lambda-backend-db:
+  mongo-data:
+  redis-data:

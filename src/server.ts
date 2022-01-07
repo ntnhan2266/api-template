@@ -31,8 +31,7 @@ process.on('unhandledRejection', (e: unknown | null | undefined) => {
 });
 
 
-const bootstrapApplication: () => void = () => {
-
+const bootstrapApplication: () => void = async () => {
   logger = new Logger();
 
   const app: express.Express = express();
@@ -43,6 +42,7 @@ const bootstrapApplication: () => void = () => {
 
   // Create an instance of DbProvider (singleton)
   const dbProvider: DbProvider = new DbProvider(logger);
+  await dbProvider.connect();
 
   // Combining dependencies for routes in one object
   const dal: IDAL = {

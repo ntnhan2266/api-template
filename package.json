@@ -31,6 +31,7 @@
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/forwarded": "^0.1.0",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^17.0.7",
     "@types/redis": "^2.8.28",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
@@ -56,9 +57,7 @@
     "forwarded": "^0.2.0",
     "helmet": "^5.0.1",
     "http-status-codes": "^2.2.0",
-    "mysql": "^2.18.1",
-    "redis": "^3.0.2",
-    "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.2.41"
+    "mongoose": "^5.13.14",
+    "redis": "^3.0.2"
   }
 }

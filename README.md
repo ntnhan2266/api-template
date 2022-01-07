@@ -15,7 +15,10 @@ npm install
 ```shell
 docker-compose -f ./docker/docker-compose.yml up -d
 ```
-3. Start dev server
+
+3. Copy file  `.env.example` to `.env`
+
+4. Start dev server
 ```shell
 npm run dev
 ```

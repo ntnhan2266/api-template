@@ -1,2 +1,2 @@
-export * from './order-type';
+export * from './order-status';
 export * from './log-level';

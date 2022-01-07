@@ -1,68 +1,113 @@
 import { resolve } from 'path';
 import { config } from 'dotenv';
-import { Connection, createConnection } from 'typeorm';
+import mongoose, { ConnectOptions } from 'mongoose';
 import { Logger } from './logger';
 import { LogLevel } from '../enums';
-import { Order } from '../entities';
 
-const LOG_PREFIX = 'DbProvider';
+const LOG_PREFIX: string = 'DbProvider';
 
 /**
  * The class responsible for communication with database.
- * The code below currently aims to connect to a mysql.
+ * The code below currently aims to connect to a mongodb.
  */
 export class DbProvider {
-  private connection!: Connection;
+  private MONGODB_URI: string;
+  private readonly MONGOOSE_OPTIONS: ConnectOptions;
 
   constructor(private logger: Logger) {
+    // load the environment specific variables
     config({ path: resolve(__dirname, '../.env') });
 
-    if (!process.env.SQL_DB_host
-      || !process.env.SQL_DB_username
-      || !process.env.SQL_DB_password
-      || !process.env.SQL_DB_database
-      || !process.env.SQL_DB_port) {
-      throw new Error('SQL environment not configured');
+    if (!process.env.MONGO_DB_user
+      || !process.env.MONGO_DB_password
+      || !process.env.MONGO_DB_host
+      || !process.env.MONGO_DB_database
+      || !process.env.MONGO_DB_port) {
+      throw new Error('DB environment not configured');
+    }
+    else {
+      const DB_USER: string = process.env.MONGO_DB_user as string;
+
+      const DB_PWD: string = process.env.MONGO_DB_password as string;
+
+      const DB_HOST: string = process.env.MONGO_DB_host as string;
+
+      const DB_PORT: string = process.env.MONGO_DB_port as string;
+
+      const DB_DATABASE: string = process.env.MONGO_DB_database as string;
+
+      this.MONGODB_URI = `mongodb://${DB_USER}:${encodeURIComponent(DB_PWD)}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
     }
 
-    const DB_HOST: string = process.env.SQL_DB_host;
-    const DB_DATABASE: string = process.env.SQL_DB_database;
-    const DB_USERNAME: string = process.env.SQL_DB_username as string;
-    const DB_PWD: string = process.env.SQL_DB_password;
-    const DB_PORT = Number(process.env.SQL_DB_port);
+    this.MONGOOSE_OPTIONS = {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+      autoIndex: true,
+      poolSize: 10,
+      bufferMaxEntries: 0,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      serverSelectionTimeoutMS: 45000,
+      family: 4,
+    }
 
-    createConnection({
-      type: "mysql",
-      host: DB_HOST,
-      port: DB_PORT,
-      username: DB_USERNAME,
-      password: DB_PWD,
-      database: DB_DATABASE,
-      entities: [
-        Order
-      ],
-      synchronize: process.env.API_ENVIRONMENT === 'development',
-      logging: false
-    }).then((pool: Connection) => {
-      this.connection = pool;
-      this.logger.log(`Connection has been established successfully`, LogLevel.Verbose, LOG_PREFIX);
-    }).catch((error: unknown) => {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      this.logger.log(`Unable to connect to the database: ${error}`, LogLevel.Error, LOG_PREFIX);
-    })
+    this.logger.log(this.MONGODB_URI, LogLevel.Debug, LOG_PREFIX);
   }
 
-  async disconnect(): Promise<void> {
+  public async connect(): Promise<void> {
+    // Connect to MongoDB
     try {
-      await this.connection.close();
-      this.logger.log(`Disconnected from the database successfully`, LogLevel.Verbose, LOG_PREFIX);
-    } catch (error: unknown) {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      this.logger.log(`Unable to disconnect from the database: ${error}`, LogLevel.Error, LOG_PREFIX);
+      this.logger.log('Connecting to databse', LogLevel.Verbose, LOG_PREFIX);
+      return mongoose
+        .connect(this.MONGODB_URI, this.MONGOOSE_OPTIONS)
+        .then(() => {
+          this.logger.log('Mongoose connection done', LogLevel.Verbose, LOG_PREFIX);
+        });
     }
+    catch (error: unknown) {
+      this.logger.log(`${error}`, LogLevel.Error, LOG_PREFIX);
+    }
+
+    // CONNECTION EVENTS
+    // When successfully connected
+    mongoose.connection.on('connected', () => {
+      this.logger.log(`Mongoose default connection open to ${this.MONGODB_URI}`, LogLevel.Debug, LOG_PREFIX);
+    });
+
+    // If the connection throws an error
+    mongoose.connection.on('error', (err: Error) => {
+      this.logger.log(`Mongoose default connection error: ${err}`, LogLevel.Error, LOG_PREFIX);
+    });
+
+    // When the connection is disconnected
+    mongoose.connection.on('disconnected', () => {
+      this.logger.log('Mongoose default connection disconnected', LogLevel.Verbose, LOG_PREFIX);
+    });
+
+    // If the Node process ends, close the Mongoose connection (ctrl + c)
+    process.on('SIGINT', () => {
+      mongoose.connection.close(() => {
+        this.logger.log('Mongoose default connection disconnected through app termination', LogLevel.Verbose, LOG_PREFIX);
+        process.exit(0);
+      });
+    });
+
+    process.on('uncaughtException', (err: Error) => {
+      this.logger.log(`Uncaught Exception: ${err}`, LogLevel.Error, LOG_PREFIX);
+    });
   }
 
-  getPool(): Connection {
-    return this.connection;
+  public async disconnect(): Promise<void> {
+    try {
+      return mongoose.disconnect()
+        .then(() => {
+          this.logger.log('Mongoose disconnected', LogLevel.Verbose, LOG_PREFIX);
+        });
+    }
+    catch (error) {
+      this.logger.log(`${error}`, LogLevel.Error, LOG_PREFIX);
+    }
   }
 }
